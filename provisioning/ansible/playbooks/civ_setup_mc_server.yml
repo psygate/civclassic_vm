@@ -1,0 +1,33 @@
+- name: Deploy minecraft services
+  hosts: civservers
+  become_user: mc
+  become: yes
+
+  tasks:
+    - name: Create minecraft folder
+      file:
+        path: /home/mc/server
+        state: directory
+        recurse: yes
+
+    - name: Create minecraft folder
+      file:
+        path: /home/mc/server_buildtools
+        state: directory
+        recurse: yes
+        owner: mc
+        group: mc
+        mode: 0755
+
+    - name: Get build tools
+      get_url:
+        url: "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
+        dest: "/home/mc/server_buildtools/BuildTools.jar"
+        owner: mc
+
+    - name: Build civserver
+      shell:
+        cmd: "java -Xmx1024M -jar BuildTools.jar --rev 1.16.1"
+        chdir: "/home/mc/server_buildtools/"
+        creates: "/home/mc/server_buildtools/spigot-1.16.1.jar"
+#        creates: "/home/mc/server_buildtools/BuildTools.jar"

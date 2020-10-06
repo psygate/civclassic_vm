@@ -1,0 +1,42 @@
+- name: Deploy base services
+  hosts: civservers
+  remote_user: root
+  become: yes
+
+  tasks:
+    - name: Install openjdk 8 (java)
+      apt:
+        name: openjdk-8-jdk-headless
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install openjre 8 (java)
+      apt:
+        name: openjdk-8-jre-headless
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install git
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Create mc user
+      user:
+        name: mc
+        state: present
+        remove: no
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+#        groups: minecraft,civclassic
+        append: yes
+        shell: /bin/bash
+        create_home: yes
+        system: yes
+
+- import_playbook: civ_setup_mc_server.yml

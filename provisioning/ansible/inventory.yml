@@ -1,0 +1,18 @@
+all:
+    children:
+        civservers:
+            hosts:
+                civmaster:
+                    ansible_connection: local
+                    ansible_user: vagrant
+
+#    hosts:
+#        civmaster:
+#            ansible_connection: local
+#            ansible_user: vagrant
+#    children:
+#        civservers:
+#            hosts:
+#                civmaster:
+#            ansible_connection: local
+#            ansible_user: vagrant

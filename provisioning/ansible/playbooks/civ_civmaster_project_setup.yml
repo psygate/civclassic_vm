@@ -1,0 +1,76 @@
+- name: Deploy base master services
+  hosts: civmaster
+  become_user: mc
+  become: yes
+
+  vars:
+    git_user_name: psygate
+
+  tasks:
+    - name: Copy github credentials private key
+      copy:
+        src: /vagrant/credentials/github
+        dest: /home/mc/.ssh/github
+        owner: mc
+        group: mc
+        mode: '0600'
+
+    - name: Copy github credentials public key
+      copy:
+        src: /vagrant/credentials/github.pub
+        dest: /home/mc/.ssh/github.pub
+        owner: mc
+        group: mc
+        mode: '0644'
+
+    - name: copy ssh config files
+      template: src=templates/mc/ssh_config.j2 dest=/home/mc/.ssh/config owner=mc group=mc mode=0600
+
+    - name: Setup project folder
+      file:
+        path: /home/mc/projects
+        state: directory
+        recurse: yes
+
+    - name: Setup civmodcore
+      git:
+        repo: git@github.com:CivClassic/CivModCore.git
+        dest: /home/mc/projects/CivModCore
+        accept_hostkey: yes
+
+    - name: Setup namelayer
+      git:
+        repo: git@github.com:CivClassic/NameLayer.git
+        dest: /home/mc/projects/NameLayer
+        accept_hostkey: yes
+
+    - name: Setup Citadel
+      git:
+        repo: git@github.com:CivClassic/Citadel.git
+        dest: /home/mc/projects/Citadel
+        accept_hostkey: yes
+
+    - name: Setup JukeAlert
+      git:
+        repo: git@github.com:CivClassic/JukeAlert.git
+        dest: /home/mc/projects/JukeAlert
+        accept_hostkey: yes
+
+    - name: Setup ItemExchange
+      git:
+        repo: git@github.com:CivClassic/ItemExchange.git
+        dest: /home/mc/projects/ItemExchange
+        accept_hostkey: yes
+
+    - name: Setup ExilePearl
+      git:
+        repo: git@github.com:CivClassic/ExilePearl.git
+        dest: /home/mc/projects/ExilePearl
+        accept_hostkey: yes
+
+    - name: Setup FactoryMod
+      git:
+        repo: git@github.com:CivClassic/FactoryMod.git
+        dest: /home/mc/projects/FactoryMod
+        accept_hostkey: yes
+
