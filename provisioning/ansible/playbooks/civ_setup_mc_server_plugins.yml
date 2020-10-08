@@ -1,0 +1,31 @@
+- name: Deploy minecraft plugins
+  hosts: civservers
+  become_user: mc
+  become: yes
+
+  tasks:
+    - name: Server plugin file should exist.
+      file:
+        path: "/home/mc/server/server_plugins/"
+        state: directory
+        recurse: yes
+        owner: mc
+        group: mc
+        mode: 0755
+
+    - name: Get Protocol Lib
+      get_url:
+        url: "https://github.com/dmulloy2/ProtocolLib/releases/download/4.5.1/ProtocolLib.jar"
+        dest: "/home/mc/server/plugins/ProtocolLib.jar"
+        owner: mc
+
+    - name: Get Attrhider
+      git:
+        clone: "git@github.com:Warren1001/attributehider.git"
+        dest: "/home/mc/server/server_plugins/attributehider"
+        owner: mc
+
+    - name: Compile Attrhider
+      script:
+        cmd: "mvn package"
+        chdir: "/home/mc/server/server_plugins/attributehider"

@@ -1,0 +1,8 @@
+#! /bin/bash
+
+if [ -f "spigot-1.16.1.pid" ]; then
+  echo "Server already running. Use stop.sh to stop the server first."
+else
+  (java -Xmx1G -Xms512M -jar "spigot-1.16.1.jar") 2> server.err.log > server.out.log &
+  echo "$!" >"spigot-1.16.1.pid"
+fi

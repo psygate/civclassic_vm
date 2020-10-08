@@ -18,6 +18,13 @@
         update_cache: yes
         cache_valid_time: 3600
 
+    - name: Install maven
+      apt:
+        name: maven
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
     - name: Install git
       apt:
         name: git
@@ -38,5 +45,14 @@
         shell: /bin/bash
         create_home: yes
         system: yes
+
+    - name: Create ansible temp dir
+      file:
+        path: "/home/mc/.ansible/tmp"
+        state: directory
+        recurse: yes
+        owner: mc
+        group: mc
+        mode: 0777
 
 - import_playbook: civ_setup_mc_server.yml

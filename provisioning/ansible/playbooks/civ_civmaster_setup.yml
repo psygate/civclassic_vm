@@ -45,11 +45,12 @@
     - name: Start the MySQL service
       service: name=mysql state=started enabled=true
 
-    - name: update mysql root password for all root accounts
-      mysql_user: name=root host=localhost password={{ mysql_root_password }} check_implicit_admin=yes
-
     - name: copy .my.cnf file with root password credentials
       template: src=templates/root/my.cnf.j2 dest=/root/.my.cnf owner=root mode=0600
+
+
+    - name: update mysql root password for all root accounts
+      mysql_user: name=root host=localhost password={{ mysql_root_password }} check_implicit_admin=yes
 
     # 'localhost' needs to be the last item for idempotency, see
     # http://ansible.cc/docs/modules.html#mysql-user

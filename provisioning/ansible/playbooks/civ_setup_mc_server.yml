@@ -6,13 +6,13 @@
   tasks:
     - name: Create minecraft folder
       file:
-        path: /home/mc/server
+        path: "/home/mc/server"
         state: directory
         recurse: yes
 
     - name: Create minecraft folder
       file:
-        path: /home/mc/server_buildtools
+        path: "/home/mc/server_buildtools"
         state: directory
         recurse: yes
         owner: mc
@@ -30,4 +30,76 @@
         cmd: "java -Xmx1024M -jar BuildTools.jar --rev 1.16.1"
         chdir: "/home/mc/server_buildtools/"
         creates: "/home/mc/server_buildtools/spigot-1.16.1.jar"
-#        creates: "/home/mc/server_buildtools/BuildTools.jar"
+
+    - name: Prepare minecraft server folder
+      shell:
+        cmd: "cp '/home/mc/server_buildtools/spigot-1.16.1.jar' '/home/mc/server/spigot-1.16.1.jar'"
+        creates: "/home/mc/server/spigot-1.16.1.jar"
+
+    - name: Copy startup script
+      template: src="templates/mc/server/start.sh.j2" dest="/home/mc/server/start.sh" owner=mc mode=0744
+
+    - name: Copy stop script
+      template: src="templates/mc/server/stop.sh.j2" dest="/home/mc/server/stop.sh" owner=mc mode=0744
+
+    - name: Stop server in case it's running.
+      script:
+        cmd: "/home/mc/server/stop.sh"
+        chdir: "/home/mc/server/"
+
+    - name: Remove log files
+      file:
+        path: "/home/mc/server/{{item}}"
+        state: absent
+      with_items:
+        - "server.err.log"
+        - "server.out.log"
+        - "/home/mc/server/spigot-1.16.1.pid"
+
+    - name: Create eula file
+      copy: src="templates/mc/server/eula.txt" dest="/home/mc/server/eula.txt" owner=mc mode=0744
+
+    - name: Remove not accepting eula
+      lineinfile:
+        path: "/home/mc/server/eula.txt"
+        state: absent
+        line: "eula=false"
+
+    - name: Accept eula
+      lineinfile:
+        path: "/home/mc/server/eula.txt"
+        state: present
+        line: "eula=true"
+
+    - name: Create server files by starting the server once
+      script:
+        cmd: "/home/mc/server/start.sh"
+        chdir: "/home/mc/server/"
+
+    - name: Wait for server files.
+      wait_for:
+        path: "/home/mc/server/{{item}}"
+        state: present
+#        timeout: 60
+      with_items:
+        - "banned-ips.json"
+        - "banned-players.json"
+        - "bukkit.yml"
+        - "commands.yml"
+        - "eula.txt"
+        - "help.yml"
+        - "ops.json"
+        - "permissions.yml"
+        - "plugins"
+        - "server.properties"
+        - "spigot.yml"
+        - "usercache.json"
+        - "whitelist.json"
+        - "plugins"
+
+    - name: Stop server after creating files.
+      script:
+        cmd: "/home/mc/server/stop.sh"
+        chdir: "/home/mc/server/"
+
+- import_playbook: civ_setup_mc_server_plugins.yml

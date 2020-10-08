@@ -74,3 +74,21 @@
         dest: /home/mc/projects/FactoryMod
         accept_hostkey: yes
 
+    - name: Setup Bastion
+      git:
+        repo: git@github.com:CivClassic/Bastion.git
+        dest: /home/mc/projects/Bastion
+        accept_hostkey: yes
+
+    - name: Setup RealisticBiomes
+      git:
+        repo: git@github.com:CivClassic/RealisticBiomes.git
+        dest: /home/mc/projects/RealisticBiomes
+        accept_hostkey: yes
+
+    - name: Setup CivChat2
+      git:
+        repo: git@github.com/CivClassic/CivChat2
+        dest: /home/mc/projects/CivChat2
+        accept_hostkey: yes
+

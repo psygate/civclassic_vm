@@ -1,0 +1,11 @@
+#! /bin/bash
+
+if [ ! -f "spigot-1.16.1.pid" ]; then
+  echo "Server isn't running, use start.sh to start the server."
+else
+  server_pid=$(cat "spigot-1.16.1.pid")
+  timeout=60
+  kill "$server_pid"
+  timeout $timeout tail --pid="$server_pid" -f /dev/null
+  rm -f "spigot-1.16.1.pid"
+fi
