@@ -4,28 +4,38 @@
   become: yes
 
   tasks:
-    - name: Server plugin file should exist.
+    - name: Server plugin folder should exist.
       file:
-        path: "/home/mc/server/server_plugins/"
+        path: "/home/mc/static_plugins/"
         state: directory
         recurse: yes
         owner: mc
         group: mc
         mode: 0755
 
-    - name: Get Protocol Lib
-      get_url:
-        url: "https://github.com/dmulloy2/ProtocolLib/releases/download/4.5.1/ProtocolLib.jar"
-        dest: "/home/mc/server/plugins/ProtocolLib.jar"
-        owner: mc
+    - name: Register output
+      stat:
+        path: "/home/mc/static_plugins/{{ item.plugin_name }}"
+      register: repo_stats
+      with_items:
+        - { user: dmulloy2, plugin_name: ProtocolLib }
+        - { user: Warren1001, plugin_name: attributehider }
+        - { user: SpraxDev, plugin_name: BetterChairs }
+        - { user: DieReicheErethons, plugin_name: Brewery }
+        - { user: SpigotMC, plugin_name: BungeeCord }
+        - { user: lucko, plugin_name: BungeeGuard }
+        - { user: Byteflux, plugin_name: CombatTagPlus }
+        - { user: filoghost, plugin_name: HolographicDisplays }
+        - { user: lucko, plugin_name: LuckPerms }
+        - { user: EngineHub, plugin_name: WorldEdit }
+        - { user: MilkBowl, plugin_name: Vault }
+        - { user: MyzelYam, plugin_name: SuperVanish }
+        - { user: NuVotifier, plugin_name: NuVotifier }
 
-    - name: Get Attrhider
+    - name: Checkout non-civclassic github plugins
       git:
-        clone: "git@github.com:Warren1001/attributehider.git"
-        dest: "/home/mc/server/server_plugins/attributehider"
-        owner: mc
-
-    - name: Compile Attrhider
-      script:
-        cmd: "mvn package"
-        chdir: "/home/mc/server/server_plugins/attributehider"
+        repo: "git@github.com:{{ item.user }}/{{ item.plugin_name }}.git"
+        dest: "/home/mc/static_plugins/{{ item.plugin_name }}"
+        accept_hostkey: yes
+      when: not item.stat.exists
+      with_items: "{{ repo_stats.results }}"

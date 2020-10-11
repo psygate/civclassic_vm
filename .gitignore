@@ -1,1 +1,3 @@
-credentials/*
+/credentials
+/projects
+/master_server

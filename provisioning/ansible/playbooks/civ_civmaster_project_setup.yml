@@ -9,19 +9,14 @@
   tasks:
     - name: Copy github credentials private key
       copy:
-        src: /vagrant/credentials/github
-        dest: /home/mc/.ssh/github
+        src: '/vagrant/credentials/{{ item.file_name }}'
+        dest: '/home/mc/.ssh/{{ item.file_name }}'
         owner: mc
         group: mc
         mode: '0600'
-
-    - name: Copy github credentials public key
-      copy:
-        src: /vagrant/credentials/github.pub
-        dest: /home/mc/.ssh/github.pub
-        owner: mc
-        group: mc
-        mode: '0644'
+      with_items:
+        - { file_name: github.pub, permissions: '0600' }
+        - { file_name: github, permissions: '0644' }
 
     - name: copy ssh config files
       template: src=templates/mc/ssh_config.j2 dest=/home/mc/.ssh/config owner=mc group=mc mode=0600
@@ -31,64 +26,43 @@
         path: /home/mc/projects
         state: directory
         recurse: yes
+        owner: mc
 
-    - name: Setup civmodcore
+    - name: Register output
+      stat:
+        path: "/home/mc/static_plugins/{{ item.plugin_name }}"
+      register: repo_stats
+      with_items:
+        - { user: CivClassic, plugin_name: TradePlus }
+        - { user: CivClassic, plugin_name: WorldBorder }
+        - { user: CivClassic, plugin_name: CivModCore }
+        - { user: CivClassic, plugin_name: NameLayer }
+        - { user: CivClassic, plugin_name: Citadel }
+        - { user: CivClassic, plugin_name: JukeAlert }
+        - { user: CivClassic, plugin_name: ItemExchange }
+        - { user: CivClassic, plugin_name: ExilePearl }
+        - { user: CivClassic, plugin_name: FactoryMod }
+        - { user: CivClassic, plugin_name: Bastion }
+        - { user: CivClassic, plugin_name: RealisticBiomes }
+        - { user: CivClassic, plugin_name: CivChat2 }
+        - { user: CivClassic, plugin_name: BanStick }
+        - { user: CivClassic, plugin_name: CivDuties }
+        - { user: CivClassic, plugin_name: CivSpy }
+        - { user: CivClassic, plugin_name: EssenceGlue }
+        - { user: CivClassic, plugin_name: Finale }
+        - { user: CivClassic, plugin_name: HiddenOre }
+        - { user: CivClassic, plugin_name: NameColors }
+        - { user: CivClassic, plugin_name: OldEnchanting }
+        - { user: CivClassic, plugin_name: Orebfuscator }
+        - { user: CivClassic, plugin_name: RailSwitch }
+        - { user: CivClassic, plugin_name: RandomSpawn }
+        - { user: CivClassic, plugin_name: RealisticBiomes }
+        - { user: CivClassic, plugin_name: SimpleAdminHacks }
+
+    - name: Checkout civclassic github plugins
       git:
-        repo: git@github.com:CivClassic/CivModCore.git
-        dest: /home/mc/projects/CivModCore
+        repo: "git@github.com:{{ item.user }}/{{ item.plugin_name }}.git"
+        dest: "/home/mc/static_plugins/{{ item.plugin_name }}"
         accept_hostkey: yes
-
-    - name: Setup namelayer
-      git:
-        repo: git@github.com:CivClassic/NameLayer.git
-        dest: /home/mc/projects/NameLayer
-        accept_hostkey: yes
-
-    - name: Setup Citadel
-      git:
-        repo: git@github.com:CivClassic/Citadel.git
-        dest: /home/mc/projects/Citadel
-        accept_hostkey: yes
-
-    - name: Setup JukeAlert
-      git:
-        repo: git@github.com:CivClassic/JukeAlert.git
-        dest: /home/mc/projects/JukeAlert
-        accept_hostkey: yes
-
-    - name: Setup ItemExchange
-      git:
-        repo: git@github.com:CivClassic/ItemExchange.git
-        dest: /home/mc/projects/ItemExchange
-        accept_hostkey: yes
-
-    - name: Setup ExilePearl
-      git:
-        repo: git@github.com:CivClassic/ExilePearl.git
-        dest: /home/mc/projects/ExilePearl
-        accept_hostkey: yes
-
-    - name: Setup FactoryMod
-      git:
-        repo: git@github.com:CivClassic/FactoryMod.git
-        dest: /home/mc/projects/FactoryMod
-        accept_hostkey: yes
-
-    - name: Setup Bastion
-      git:
-        repo: git@github.com:CivClassic/Bastion.git
-        dest: /home/mc/projects/Bastion
-        accept_hostkey: yes
-
-    - name: Setup RealisticBiomes
-      git:
-        repo: git@github.com:CivClassic/RealisticBiomes.git
-        dest: /home/mc/projects/RealisticBiomes
-        accept_hostkey: yes
-
-    - name: Setup CivChat2
-      git:
-        repo: git@github.com/CivClassic/CivChat2
-        dest: /home/mc/projects/CivChat2
-        accept_hostkey: yes
-
+      when: not item.stat.exists
+      with_items: "{{ repo_stats.results }}"
