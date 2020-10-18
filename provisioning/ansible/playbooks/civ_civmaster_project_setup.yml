@@ -1,68 +1,73 @@
-- name: Deploy base master services
-  hosts: civmaster
+- name: Deploy minecraft plugins
+  hosts: civservers
   become_user: mc
   become: yes
 
   vars:
-    git_user_name: psygate
+    plugins:
+      - { user: CivClassic, plugin_name: TradePlus, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: WorldBorder, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: CivModCore, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: NameLayer, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: Citadel, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: JukeAlert, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: ItemExchange, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: ExilePearl, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: FactoryMod, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: Bastion, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: RealisticBiomes, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: CivChat2, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: BanStick, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: CivDuties, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: CivSpy, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: EssenceGlue, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: Finale, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: HiddenOre, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: NameColors, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: OldEnchanting, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: Orebfuscator, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: RailSwitch, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: RandomSpawn, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: RealisticBiomes, build_system: "mvn" }
+      - { user: CivClassic, plugin_name: SimpleAdminHacks, build_system: "mvn" }
+
 
   tasks:
-    - name: Copy github credentials private key
-      copy:
-        src: '/vagrant/credentials/{{ item.file_name }}'
-        dest: '/home/mc/.ssh/{{ item.file_name }}'
-        owner: mc
-        group: mc
-        mode: '0600'
-      with_items:
-        - { file_name: github.pub, permissions: '0600' }
-        - { file_name: github, permissions: '0644' }
-
-    - name: copy ssh config files
-      template: src=templates/mc/ssh_config.j2 dest=/home/mc/.ssh/config owner=mc group=mc mode=0600
-
-    - name: Setup project folder
+    - name: Server plugin folder should exist.
       file:
-        path: /home/mc/projects
+        path: "/home/mc/projects/"
         state: directory
         recurse: yes
         owner: mc
+        group: mc
+        mode: 0755
 
-    - name: Register output
+    - name: Check if checkout directories already exist.
       stat:
-        path: "/home/mc/static_plugins/{{ item.plugin_name }}"
+        path: "/home/mc/projects/{{ item.plugin_name }}"
       register: repo_stats
-      with_items:
-        - { user: CivClassic, plugin_name: TradePlus }
-        - { user: CivClassic, plugin_name: WorldBorder }
-        - { user: CivClassic, plugin_name: CivModCore }
-        - { user: CivClassic, plugin_name: NameLayer }
-        - { user: CivClassic, plugin_name: Citadel }
-        - { user: CivClassic, plugin_name: JukeAlert }
-        - { user: CivClassic, plugin_name: ItemExchange }
-        - { user: CivClassic, plugin_name: ExilePearl }
-        - { user: CivClassic, plugin_name: FactoryMod }
-        - { user: CivClassic, plugin_name: Bastion }
-        - { user: CivClassic, plugin_name: RealisticBiomes }
-        - { user: CivClassic, plugin_name: CivChat2 }
-        - { user: CivClassic, plugin_name: BanStick }
-        - { user: CivClassic, plugin_name: CivDuties }
-        - { user: CivClassic, plugin_name: CivSpy }
-        - { user: CivClassic, plugin_name: EssenceGlue }
-        - { user: CivClassic, plugin_name: Finale }
-        - { user: CivClassic, plugin_name: HiddenOre }
-        - { user: CivClassic, plugin_name: NameColors }
-        - { user: CivClassic, plugin_name: OldEnchanting }
-        - { user: CivClassic, plugin_name: Orebfuscator }
-        - { user: CivClassic, plugin_name: RailSwitch }
-        - { user: CivClassic, plugin_name: RandomSpawn }
-        - { user: CivClassic, plugin_name: RealisticBiomes }
-        - { user: CivClassic, plugin_name: SimpleAdminHacks }
+      with_items: "{{plugins}}"
 
     - name: Checkout civclassic github plugins
       git:
-        repo: "git@github.com:{{ item.user }}/{{ item.plugin_name }}.git"
-        dest: "/home/mc/static_plugins/{{ item.plugin_name }}"
+        repo: "git@github.com:{{ item.item.user }}/{{ item.item.plugin_name }}.git"
+        dest: "/home/mc/static_plugins/{{ item.item.plugin_name }}"
         accept_hostkey: yes
       when: not item.stat.exists
-      with_items: "{{ repo_stats.results }}"
+      with_items: "{{repo_stats.results}}"
+
+    - name: Build civclassic plugins (mvn)
+      shell:
+        executable: "/bin/bash"
+        cmd : "mvn package -DskipTests -Dmaven.test.skip=true -Dmaven.wagon.http.ssl.allowall=true"
+        chdir: "/home/mc/projects/{{ item.plugin_name }}"
+      when: item.build_system == "mvn"
+      with_items: "{{plugins}}"
+
+    - name: Build civclassic plugins (gradle)
+      shell:
+        executable: "/bin/bash"
+        cmd: "./gradlew build -x test"
+        chdir: "/home/mc/projects/{{ item.plugin_name }}"
+      when: item.build_system == "gradle"
+      with_items: "{{plugins}}"

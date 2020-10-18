@@ -3,6 +3,24 @@
   become_user: mc
   become: yes
 
+  vars:
+    skip_server_initialization_file: "plguins/"
+    required_server_file_list:
+      - "banned-ips.json"
+      - "banned-players.json"
+      - "bukkit.yml"
+      - "commands.yml"
+      - "eula.txt"
+      - "help.yml"
+      - "ops.json"
+      - "permissions.yml"
+      - "plugins"
+      - "server.properties"
+      - "spigot.yml"
+      - "usercache.json"
+      - "whitelist.json"
+      - "plugins"
+
   tasks:
     - name: Create minecraft folder
       file:
@@ -47,6 +65,11 @@
         cmd: "/home/mc/server/stop.sh"
         chdir: "/home/mc/server/"
 
+#    - name: Kill server.
+#      shell:
+#        cmd: "kill $(ps aux | grep java | grep spigot | cut -d ' ' -f 9)"
+#        chdir: "/home/mc/server/"
+
     - name: Remove log files
       file:
         path: "/home/mc/server/{{item}}"
@@ -75,27 +98,14 @@
       script:
         cmd: "/home/mc/server/start.sh"
         chdir: "/home/mc/server/"
+        creates: "{{skip_server_initialization_file}}"
 
     - name: Wait for server files.
       wait_for:
         path: "/home/mc/server/{{item}}"
         state: present
       #        timeout: 60
-      with_items:
-        - "banned-ips.json"
-        - "banned-players.json"
-        - "bukkit.yml"
-        - "commands.yml"
-        - "eula.txt"
-        - "help.yml"
-        - "ops.json"
-        - "permissions.yml"
-        - "plugins"
-        - "server.properties"
-        - "spigot.yml"
-        - "usercache.json"
-        - "whitelist.json"
-        - "plugins"
+      with_items: "{{required_server_file_list}}"
 
     - name: Stop server after creating files.
       script:

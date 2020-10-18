@@ -7,5 +7,6 @@ else
   timeout=60
   kill "$server_pid"
   timeout $timeout tail --pid="$server_pid" -f /dev/null
+  kill -9 "$server_pid"
   rm -f "spigot-1.16.1.pid"
 fi

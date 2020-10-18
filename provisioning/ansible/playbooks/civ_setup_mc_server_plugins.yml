@@ -3,6 +3,74 @@
   become_user: mc
   become: yes
 
+  vars:
+    plugins:
+
+#      - user: SpigotMC
+#        plugin_name: BungeeCord
+#        build_system: mvn
+#        jar_url: ""
+
+      - user: dmulloy2
+        plugin_name: ProtocolLib
+        build_system: mvn
+        jar_url: "https://github.com/dmulloy2/ProtocolLib/releases/download/4.5.1/ProtocolLib.jar"
+
+      - user: Warren1001
+        plugin_name: attributehider
+        build_system: mvn
+        jar_url: "https://www.spigotmc.org/resources/attributehider.10604/download?version=341896"
+
+      - user: SpraxDev
+        plugin_name: BetterChairs
+        build_system: mvn
+        jar_url: "https://www.spigotmc.org/resources/better-chairs.18705/download?version=276721"
+
+      - user: DieReicheErethons
+        plugin_name: Brewery
+        build_system: mvn
+        jar_url: "https://www.spigotmc.org/resources/brewery.3082/download?version=324497"
+
+      - user: lucko
+        plugin_name: BungeeGuard
+        build_system: mvn
+        jar_url: "https://github.com/lucko/BungeeGuard/releases/download/v1.2.0/BungeeGuard.jar"
+
+      - user: Byteflux
+        plugin_name: CombatTagPlus
+        build_system: mvn
+        jar_url: "https://www.spigotmc.org/resources/combattagplus.4775/download?version=190860"
+
+      - user: filoghost
+        plugin_name: HolographicDisplays
+        build_system: mvn
+        jar_url: "https://dev.bukkit.org/projects/holographic-displays/files/latest"
+
+      - user: lucko
+        plugin_name: LuckPerms
+        build_system: gradle
+        jar_url: "https://www.spigotmc.org/resources/luckperms.28140/download?version=350775"
+
+      - user: EngineHub
+        plugin_name: WorldEdit
+        build_system: gradle
+        jar_url: "https://dev.bukkit.org/projects/worldedit/files/latest"
+
+      - user: MilkBowl
+        plugin_name: Vault
+        build_system: mvn
+        jar_url: "https://www.spigotmc.org/resources/vault.34315/download?version=344916"
+
+      - user: MyzelYam
+        plugin_name: SuperVanish
+        build_system: mvn
+        jar_url: "https://www.spigotmc.org/resources/supervanish-be-invisible.1331/download?version=354304"
+
+      - user: NuVotifier
+        plugin_name: NuVotifier
+        build_system: gradle
+        jar_url: "https://github.com/NuVotifier/NuVotifier/releases/download/v2.7.1/nuvotifier-2.7.1.jar"
+
   tasks:
     - name: Server plugin folder should exist.
       file:
@@ -13,29 +81,34 @@
         group: mc
         mode: 0755
 
-    - name: Register output
+    - name: Check if checkout directories already exist.
       stat:
         path: "/home/mc/static_plugins/{{ item.plugin_name }}"
       register: repo_stats
-      with_items:
-        - { user: dmulloy2, plugin_name: ProtocolLib }
-        - { user: Warren1001, plugin_name: attributehider }
-        - { user: SpraxDev, plugin_name: BetterChairs }
-        - { user: DieReicheErethons, plugin_name: Brewery }
-        - { user: SpigotMC, plugin_name: BungeeCord }
-        - { user: lucko, plugin_name: BungeeGuard }
-        - { user: Byteflux, plugin_name: CombatTagPlus }
-        - { user: filoghost, plugin_name: HolographicDisplays }
-        - { user: lucko, plugin_name: LuckPerms }
-        - { user: EngineHub, plugin_name: WorldEdit }
-        - { user: MilkBowl, plugin_name: Vault }
-        - { user: MyzelYam, plugin_name: SuperVanish }
-        - { user: NuVotifier, plugin_name: NuVotifier }
+      with_items: "{{plugins}}"
 
     - name: Checkout non-civclassic github plugins
       git:
-        repo: "git@github.com:{{ item.user }}/{{ item.plugin_name }}.git"
-        dest: "/home/mc/static_plugins/{{ item.plugin_name }}"
+        repo: "git@github.com:{{ item.item.user }}/{{ item.item.plugin_name }}.git"
+        dest: "/home/mc/static_plugins/{{ item.item.plugin_name }}"
         accept_hostkey: yes
       when: not item.stat.exists
-      with_items: "{{ repo_stats.results }}"
+      with_items: "{{repo_stats.results}}"
+
+    - name: Build non-civclassic plugins (maven)
+      shell:
+        executable: "/bin/bash"
+        cmd : "mvn package -DskipTests -Dmaven.test.skip=true -Dmaven.wagon.http.ssl.allowall=true"
+        chdir: "/home/mc/static_plugins/{{ item.plugin_name }}"
+      ignore_errors: true
+      when: item.build_system == "mvn"
+      with_items: "{{plugins}}"
+
+    - name: Build non-civclassic plugins (gradle)
+      shell:
+        cmd: "./gradlew build -x test"
+        chdir: "/home/mc/static_plugins/{{ item.plugin_name }}"
+      ignore_errors: true
+      when: item.build_system == "gradle"
+      with_items: "{{plugins}}"
+
