@@ -1,0 +1,15 @@
+yaml = 'rvm: 2.3'
+               config = Travis::Yml.load(yaml)
+
+  {
+    "name": "ensure-proper-formatting-of-files",
+    "description": "Simple check with prettier to make sure that style guidelines are adhered to.",
+    "author": "psygate",
+    "version": "0.0.1",
+    "devDependencies": {
+      "jshint": "^2.6.0"
+    },
+    "scripts": {
+      "test": "prettier --check ."
+    }
+  }
