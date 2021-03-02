@@ -39,8 +39,8 @@ Vagrant.configure("2") do |config|
 
         config.trigger.after :provision do |trigger|
           trigger.info = "Bringing up shared folders."
-          civmaster.vm.synced_folder "projects/", "/home/mc/projects/", owner: "mc", group: "mc", automount: true
-          civmaster.vm.synced_folder "master_server/", "/home/mc/server/", owner: "mc", group: "mc", automount: true
+          civmaster.vm.synced_folder "projects/", "/home/mc/projects/", owner: "mc", group: "mc", automount: true, create: true
+          civmaster.vm.synced_folder "master_server/", "/home/mc/server/", owner: "mc", group: "mc", automount: true, create: true
         end
     end
 end

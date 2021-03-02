@@ -39,3 +39,10 @@ You can modify those projects if you fork them on github and then set the remote
 #### `/master_server`
 
 This directory contains the files for the server instance on the master.
+
+## Known errors
+
+* Shared folders `projects` `master_server` do not exist:
+  Switch to the folder with the Vagrant file is located (this should be the same as this README.md), type `vagrant up --provision` again.
+  This should fix it. If it doesn't, `vagrant halt` and then `vagrant up --provision`.
+  VBox is sometimes a bit stubborn about shared folder mounting.
